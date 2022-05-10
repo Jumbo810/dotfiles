@@ -1,0 +1,5 @@
+## Do case sensitive searches by default.
+set casesensitive
+
+## Reduce tab length.
+set tabsize 4

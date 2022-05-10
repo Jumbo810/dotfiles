@@ -1,0 +1,13 @@
+[alias]
+	graph = log --graph --abbrev-commit --decorate --all --format=format:\"%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(dim white) - %an%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n %C(white)%s%C(reset)\"
+	last = log -1 --stat --show-signature
+[commit]
+	gpgsign = true
+[init]
+	defaultBranch = main
+[pull]
+	ff = only
+[user]
+	name = Leonid Pliushch
+	email = sylirre@gmail.com
+	signingkey = B60F4A04BC8254AF5626A432268047C7D92B9FF0
