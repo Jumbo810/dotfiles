@@ -54,7 +54,14 @@ if [ -d "/google" ] && [ -e "/.dockerenv" ]; then
 	# For graphics over X/VNC.
 	export DISPLAY=":1"
 else
-	export ANDROID_HOME="${HOME}/.local/opt/android-sdk"
+	if [ -d "${HOME}/.local/opt/android-sdk" ]; then
+		export ANDROID_HOME="${HOME}/.local/opt/android-sdk"
+		export PATH="${HOME}/.local/opt/android-sdk/platform-tools:${PATH}"
+	fi
+
+	if [ -d "${HOME}/.local/opt/android-studio/bin" ]; then
+		export PATH="${HOME}/.local/opt/android-studio/bin:${PATH}"
+	fi
 fi
 
 # Finally, load ~/.bashrc.
