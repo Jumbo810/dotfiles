@@ -1,7 +1,5 @@
 # ~/.bash_profile: executed by the command interpreter for login shells.
-
-# Strict umask for privacy.
-umask 0077
+umask 0022
 
 # Ensure that cache directory exists.
 if [ ! -d "${HOME}/.cache" ]; then

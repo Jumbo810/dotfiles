@@ -2,6 +2,7 @@
 
 # If not running interactively, don't do anything.
 [[ $- != *i* ]] && return
+umask 0022
 
 # Special configuration for Google Cloud Shell environment.
 if [ -d "/google" ] && [ -e "/.dockerenv" ]; then
@@ -12,9 +13,6 @@ if [ -d "/google" ] && [ -e "/.dockerenv" ]; then
 	# Delete unneeded files.
 	rm -f "${HOME:?}/README-cloudshell.txt"
 fi
-
-# Strict umask for privacy.
-umask 0077
 
 # On serial console we need to be sure whether console size is matching
 # the size of a terminal screen.
