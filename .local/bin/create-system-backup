@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+set -e
+
+usage() {
+	echo
+	echo "Usage: create-system-backup [backup_path]"
+	echo
+	echo "Create a system backup using tar and store it at the"
+	echo "specified path."
+	echo
+	echo "Backup will be encrypted by GnuPG, so a passphrase"
+	echo "will be asked. Also you may be asked for the sudo"
+	echo "passphrase if script isn't executed as root."
+	echo
+}
+
+if [ "$(uname -o)" != "GNU/Linux" ] || [ -x "/system/bin/sh" ] || [ ! -d "/var" ]; then
+	echo "This script can run only on standard GNU/Linux systems."
+	exit 1
+fi
+
+if [ "$(id -u)" != 0 ]; then
+	SUDO="sudo"
+	if [ -z "$(command -v sudo)" ]; then
+		echo "Utility is not installed: sudo"
+		exit 1
+	fi
+else
+	SUDO="command"
+fi
+
+for cmd in tar gpg; do
+	if [ -z "$(command -v "$cmd")" ]; then
+		echo "Utility is not installed: $cmd"
+		exit 1
+	fi
+done
+unset cmd
+
+if [ -z "$1" ]; then
+	echo
+	echo "Error: backup output path is not specified"
+	usage
+	exit 1
+elif [[ $1 =~ ^[[:space:]]*(-h|--help|--usage)$ ]]; then
+	usage
+	exit 0
+elif [[ $1 =~ ^[[:space:]]*-.* ]]; then
+	echo
+	echo "Error: unknown argument '$1'"
+	usage
+	exit 1
+else
+	BACKUP_FILE_PATH="$(realpath "$(dirname "$1")")/$(basename "$1")"
+fi
+
+if [ -e "$BACKUP_FILE_PATH" ]; then
+	echo "Error: file '$BACKUP_FILE_PATH' already exists."
+	exit 1
+fi
+
+read -res -p "Encryption passphrase: " BACKUP_ENCRYPTION_PASSPHRASE
+echo
+if [ -z "$BACKUP_ENCRYPTION_PASSPHRASE" ]; then
+	echo "Error: you must provide encryption passphrase."
+	exit 1
+fi
+read -res -p "Confirm the passphrase: " BACKUP_ENCRYPTION_PASSPHRASE_CNF
+echo
+if [ "$BACKUP_ENCRYPTION_PASSPHRASE" != "$BACKUP_ENCRYPTION_PASSPHRASE_CNF" ]; then
+	echo "Error: the entered passphrase doesn't match the previous one."
+	exit 1
+fi
+
+echo
+echo "Backing up system (will take a while)..."
+$SUDO tar -vv \
+	--no-wildcards-match-slash \
+	--exclude=".${BACKUP_FILE_PATH}" \
+	--exclude='./dev/*' \
+	--exclude='./home/*/.cache' \
+	--exclude='./home/*/.local/share/Trash' \
+	--exclude='./home/*/.local/opt' \
+	--exclude='./home/*/Desktop' \
+	--exclude='./home/*/Documents' \
+	--exclude='./home/*/Downloads' \
+	--exclude='./home/*/Music' \
+	--exclude='./home/*/Pictures' \
+	--exclude='./home/*/Public' \
+	--exclude='./home/*/Templates' \
+	--exclude='./home/*/Videos' \
+	--exclude='./lost+found' \
+	--exclude='./mnt/*' \
+	--exclude='./proc/*' \
+	--exclude='./root/.cache' \
+	--exclude='./root/.dbus' \
+	--exclude='./run/*' \
+	--exclude='./sys/*' \
+	--exclude='./tmp/*' \
+	--exclude='./var/crash/*' \
+	--exclude='./var/lib/docker/*' \
+	--exclude='./var/lib/libvirt/images/*' \
+	--exclude='./var/tmp/*' \
+	--create \
+	--numeric-owner \
+	--one-file-system \
+	--xattrs \
+	--warning=no-file-ignored \
+	-C / ./ \
+| gpg \
+	--batch \
+	--symmetric \
+	--passphrase-file <(echo "$BACKUP_ENCRYPTION_PASSPHRASE") \
+	--output "$BACKUP_FILE_PATH"
+
+chmod 600 "$BACKUP_FILE_PATH"
+
+echo
+echo "Done: $BACKUP_FILE_PATH"
