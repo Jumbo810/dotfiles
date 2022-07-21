@@ -8,7 +8,7 @@ if [ ! -d "${HOME}/.cache" ]; then
 fi
 
 # PATH: setup binary search paths including user's private directories.
-export PATH="${HOME}/.local/bin:${PATH}"
+export PATH="${HOME}/.local/privbin:${HOME}/.local/bin:${PATH}"
 
 # MANPATH: setup manual pages search paths including user's private
 # directories.
